@@ -1,0 +1,7 @@
+# Onion grading dataset (YOLOv8 segmentation format)
+path: C:/Users/arjit/Desktop/empty/data/real
+train: images/train
+val: images/valid
+
+nc: 3
+names: ['grade_a', 'grade_urs', 'reject']

@@ -1,0 +1,26 @@
+{
+  "policy_id": "default_v1",
+  "version": "1.0.0",
+  "effective_date": "2026-09-27",
+  "urs_enabled": true,
+  "strict_calibration_required": false,
+  "min_confidence_threshold": 0.40,
+  "grade_a": {
+    "diameter_min_mm": 45.0,
+    "diameter_max_mm": 65.0,
+    "max_defects": {
+      "damaged": false,
+      "rotten": false,
+      "sprouted": false
+    }
+  },
+  "grade_urs": {
+    "diameter_min_mm": 35.0,
+    "diameter_max_mm": 70.0,
+    "max_defects": {
+      "damaged": true,
+      "rotten": false,
+      "sprouted": true
+    }
+  }
+}

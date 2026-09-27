@@ -1,0 +1,51 @@
+# Virtual environments
+venv/
+env/
+.venv/
+ENV/
+
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# Development environments & IDEs
+.claude/
+.idea/
+.vscode/
+
+# External cloned dataset repo (1.6+ GB)
+Onion-grading-deeplearning-SIH-/
+
+# Unrelated standalone project
+SmartWardrobe_India/
+
+# Legacy empty directories
+ml-backend/
+
+# Large training runs & raw checkpoints
+runs/
+weights/
+yolov8s-seg.pt
+model_backend/last.pt
+*.log
+
+# Training images (keep validation set and synthetic samples for 1-click testing)
+data/real/images/train/
+data/real/labels/train/
+
+# Generated runtime reports & outputs (keep directory structure)
+reports/*
+!reports/.gitkeep
+!reports/debug_onion_detection.png
+
+# Model backend temp outputs
+model_backend/output/
+model_backend/predictions.json
+
+# Operating System files
+.DS_Store
+Thumbs.db
+desktop.ini

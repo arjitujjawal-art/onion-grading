@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OnionAI — Smart Quality Grading & Traceability System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --surface: #111827;
+      --surface-card: #162032;
+      --surface-hover: #1e2b42;
+      --border: #24324d;
+      --border-accent: #33476d;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --grade-a: #10b981;
+      --grade-a-bg: rgba(16, 185, 129, 0.12);
+      --grade-a-border: rgba(16, 185, 129, 0.4);
+      --grade-urs: #f59e0b;
+      --grade-urs-bg: rgba(245, 158, 11, 0.12);
+      --grade-urs-border: rgba(245, 158, 11, 0.4);
+      --grade-rej: #ef4444;
+      --grade-rej-bg: rgba(239, 68, 68, 0.12);
+      --grade-rej-border: rgba(239, 68, 68, 0.4);
+      --grade-rev: #6366f1;
+      --grade-rev-bg: rgba(99, 102, 241, 0.12);
+      --grade-rev-border: rgba(99, 102, 241, 0.4);
+      --cyan: #06b6d4;
+      --cyan-bg: rgba(6, 182, 212, 0.12);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    /* Top Nav */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, #10b981, #06b6d4);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+    }
+    .brand-title {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .brand-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .telemetry {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .pill {
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      padding: 5px 12px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-muted);
+    }
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--grade-a);
+      box-shadow: 0 0 8px var(--grade-a);
+    }
+
+    /* Main Container */
+    main {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 24px;
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 1080px) {
+      main { grid-template-columns: 1fr; }
+    }
+
+    /* Left Sidebar: Controls & Input */
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+    .card-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Quick Test Presets */
+    .presets-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .preset-btn {
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      text-align: left;
+      cursor: pointer;
+      color: var(--text);
+      transition: all 0.15s ease;
+      font-family: inherit;
+    }
+    .preset-btn:hover {
+      background: var(--surface-hover);
+      border-color: var(--cyan);
+      transform: translateY(-1px);
+    }
+    .preset-title {
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+    .preset-badge {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Upload Zone */
+    .dropzone {
+      border: 2px dashed var(--border-accent);
+      background: var(--surface-card);
+      border-radius: 12px;
+      padding: 26px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+    .dropzone:hover, .dropzone.dragover {
+      border-color: var(--grade-a);
+      background: rgba(16, 185, 129, 0.05);
+    }
+    .dropzone-icon {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+    .dropzone-text {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .dropzone-sub {
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    .form-group {
+      margin-top: 14px;
+    }
+    .form-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 6px;
+      display: block;
+    }
+    .form-input {
+      width: 100%;
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 12px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .form-input:focus {
+      border-color: var(--cyan);
+    }
+
+    .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .btn-primary {
+      width: 100%;
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 13px 20px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+      transition: all 0.2s ease;
+      margin-top: 14px;
+      font-family: inherit;
+    }
+    .btn-primary:hover:not(:disabled) {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+    }
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-secondary {
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: inherit;
+      transition: all 0.15s;
+      text-decoration: none;
+    }
+    .btn-secondary:hover {
+      background: var(--surface-hover);
+      border-color: var(--border-accent);
+    }
+
+    /* Right Main Panel: Visualizer & Results */
+    .dashboard {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Acceptance Status Banner */
+    .status-banner {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .status-banner::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 5px;
+      background: var(--grade-a);
+    }
+    .banner-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .banner-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: var(--grade-a-bg);
+      border: 1px solid var(--grade-a-border);
+      color: var(--grade-a);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+    .banner-title {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+    }
+    .banner-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* KPI Summary Row */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+    }
+    @media (max-width: 900px) {
+      .kpi-row { grid-template-columns: repeat(2, 1fr); }
+    }
+    .kpi-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .kpi-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .kpi-val {
+      font-size: 22px;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .kpi-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* Visualizer Container */
+    .viewer-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .viewer-header {
+      padding: 14px 20px;
+      background: rgba(255, 255, 255, 0.02);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .tabs {
+      display: flex;
+      gap: 6px;
+      background: var(--surface-card);
+      padding: 4px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+    .tab-btn.active {
+      background: var(--surface);
+      color: var(--text);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .viewer-body {
+      background: #060911;
+      min-height: 440px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      padding: 16px;
+    }
+    .viewer-img {
+      max-width: 100%;
+      max-height: 520px;
+      object-fit: contain;
+      border-radius: 8px;
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.6);
+    }
+    .viewer-empty {
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 14px;
+    }
+
+    /* Onion Breakdown Table */
+    .table-container {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .table-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      text-align: left;
+    }
+    th {
+      background: var(--surface-card);
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.05em;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--surface-hover); }
+
+    .grade-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.03em;
+    }
+    .grade-badge.GRADE_A {
+      background: var(--grade-a-bg);
+      color: var(--grade-a);
+      border: 1px solid var(--grade-a-border);
+    }
+    .grade-badge.GRADE_URS {
+      background: var(--grade-urs-bg);
+      color: var(--grade-urs);
+      border: 1px solid var(--grade-urs-border);
+    }
+    .grade-badge.REJECTED {
+      background: var(--grade-rej-bg);
+      color: var(--grade-rej);
+      border: 1px solid var(--grade-rej-border);
+    }
+    .grade-badge.MANUAL_REVIEW {
+      background: var(--grade-rev-bg);
+      color: var(--grade-rev);
+      border: 1px solid var(--grade-rev-border);
+    }
+
+    .reason-tag {
+      display: inline-block;
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      margin-right: 4px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .cal-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: var(--cyan);
+    }
+
+    /* Modal / Policy Config */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border-accent);
+      border-radius: 16px;
+      width: 520px;
+      max-width: 90vw;
+      padding: 24px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+    }
+
+    /* Spinner */
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">🧅</div>
+      <div>
+        <div class="brand-title">OnionAI <span style="font-weight:400; color:var(--cyan); font-size:14px;">Grade & Trace</span></div>
+        <div class="brand-sub">Smart India Hackathon • Computer Vision & Precision Metrology</div>
+      </div>
+    </div>
+
+    <div class="telemetry">
+      <div class="pill">
+        <span class="dot"></span>
+        <span id="tele-model">YOLOv8s-Seg (93.6% mAP)</span>
+      </div>
+      <div class="pill">
+        <span id="tele-device">RTX 5050 Active</span>
+      </div>
+      <button class="btn-secondary" onclick="openPolicyModal()">⚙ Policy Rules</button>
+    </div>
+  </header>
+
+  <!-- Main Body Grid -->
+  <main>
+    <!-- Left Column: Controls & Presets -->
+    <div class="sidebar">
+
+      <!-- 1-Click Preset Gallery -->
+      <div class="card">
+        <div class="card-title">
+          <span>🎯 Instant Presets</span>
+          <span style="font-size:11px; color:var(--text-dim); font-weight:500;">1-Click Validation</span>
+        </div>
+        <div class="presets-grid" id="presets-container">
+          <button class="preset-btn" onclick="loadSample('sample_prime_grade_a')">
+            <div class="preset-title">Grade A Prime</div>
+            <div class="preset-badge">Clean • Optimal Size</div>
+          </button>
+          <button class="preset-btn" onclick="loadSample('sample_grade_urs')">
+            <div class="preset-title">Grade URS</div>
+            <div class="preset-badge">Skin Damage / Peeling</div>
+          </button>
+          <button class="preset-btn" onclick="loadSample('sample_reject')">
+            <div class="preset-title">Reject Onion</div>
+            <div class="preset-badge">Rot / Severe Defect</div>
+          </button>
+          <button class="preset-btn" onclick="loadSample('sample_calibrated_tray')">
+            <div class="preset-title">Calibrated Tray</div>
+            <div class="preset-badge">ArUco 25mm Scale</div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Upload / Capture Card -->
+      <div class="card">
+        <div class="card-title">
+          <span>📷 Inspection Input</span>
+          <button class="btn-secondary" style="padding:3px 8px; font-size:11px;" onclick="toggleWebcam()">Webcam</button>
+        </div>
+
+        <input type="file" id="file-picker" accept="image/*" style="display:none" onchange="handleFileSelect(event)">
+        
+        <div class="dropzone" id="dropzone" onclick="document.getElementById('file-picker').click()">
+          <div class="dropzone-icon">📥</div>
+          <div class="dropzone-text">Click or Drop Onion Image</div>
+          <div class="dropzone-sub">Supports JPEG, PNG, TIFF from camera or scanner</div>
+        </div>
+
+        <div id="webcam-box" style="display:none; margin-top:12px; text-align:center;">
+          <video id="webcam" autoplay playsinline style="width:100%; border-radius:8px; background:#000;"></video>
+          <button class="btn-secondary" style="margin-top:8px; width:100%;" onclick="captureWebcam()">📸 Capture Frame</button>
+        </div>
+
+        <!-- Procurement Metadata -->
+        <div class="form-group">
+          <label class="form-label">Batch & Farmer Identifiers</label>
+          <div class="row-2">
+            <input type="text" id="batch_id" class="form-input" value="MANDI-BATCH-402">
+            <input type="text" id="farmer_id" class="form-input" value="FARMER-MH-91">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Procurement Centre</label>
+          <input type="text" id="centre" class="form-input" value="Lasalgaon APMC Mandi, Nashik">
+        </div>
+
+        <div class="form-group">
+          <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+            <label class="form-label">Confidence Gate</label>
+            <span id="conf-val" style="font-size:11px; font-family:'JetBrains Mono'; color:var(--cyan);">35%</span>
+          </div>
+          <input type="range" id="conf-slider" min="20" max="80" value="35" style="width:100%;" oninput="document.getElementById('conf-val').innerText = this.value + '%'">
+        </div>
+
+        <button class="btn-primary" id="grade-btn" onclick="executeGrading()" disabled>
+          <span id="btn-text">Execute Grade & Audit</span>
+        </button>
+      </div>
+
+      <!-- Quick Traceability Actions -->
+      <div class="card" id="export-card" style="display:none;">
+        <div class="card-title">📜 Audit Reports</div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <a id="btn-view-html" class="btn-secondary" target="_blank" href="#">🌐 View HTML Certificate</a>
+          <a id="btn-download-pdf" class="btn-secondary" target="_blank" href="#">📥 Download Certified PDF (QR Included)</a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right Column: Visualizer & Breakdown -->
+    <div class="dashboard">
+
+      <!-- Executive Status Banner -->
+      <div class="status-banner" id="status-banner">
+        <div class="banner-left">
+          <div class="banner-icon" id="banner-icon">✓</div>
+          <div>
+            <div class="banner-title" id="banner-title">Ready for Image Inspection</div>
+            <div class="banner-subtitle" id="banner-subtitle">Upload an onion image or click an instant preset to run inference</div>
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:11px; color:var(--text-dim); text-transform:uppercase;">Calibration Scale</div>
+          <div style="font-weight:700; font-family:'JetBrains Mono';" id="banner-cal">Checking...</div>
+        </div>
+      </div>
+
+      <!-- KPI Summary Cards -->
+      <div class="kpi-row">
+        <div class="kpi-card">
+          <div class="kpi-label">Total Onions</div>
+          <div class="kpi-val" id="kpi-total">0</div>
+          <div class="kpi-sub">Instance count</div>
+        </div>
+        <div class="kpi-card" style="border-color:var(--grade-a-border);">
+          <div class="kpi-label" style="color:var(--grade-a);">Grade A</div>
+          <div class="kpi-val" style="color:var(--grade-a);" id="kpi-a">0%</div>
+          <div class="kpi-sub" id="kpi-a-cnt">0 onions</div>
+        </div>
+        <div class="kpi-card" style="border-color:var(--grade-urs-border);">
+          <div class="kpi-label" style="color:var(--grade-urs);">Grade URS</div>
+          <div class="kpi-val" style="color:var(--grade-urs);" id="kpi-urs">0%</div>
+          <div class="kpi-sub" id="kpi-urs-cnt">0 onions</div>
+        </div>
+        <div class="kpi-card" style="border-color:var(--grade-rej-border);">
+          <div class="kpi-label" style="color:var(--grade-rej);">Rejected</div>
+          <div class="kpi-val" style="color:var(--grade-rej);" id="kpi-rej">0%</div>
+          <div class="kpi-sub" id="kpi-rej-cnt">0 onions</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Avg Diameter</div>
+          <div class="kpi-val" id="kpi-diam">0.0</div>
+          <div class="kpi-sub">millimeters</div>
+        </div>
+      </div>
+
+      <!-- Visual Inspection Viewer -->
+      <div class="viewer-card">
+        <div class="viewer-header">
+          <div style="font-weight:700; font-size:13px; text-transform:uppercase; letter-spacing:0.04em;">
+            Visual Inspection & Mask Overlay
+          </div>
+          <div class="tabs">
+            <button class="tab-btn active" id="tab-annot" onclick="switchView('annotated')">AI Mask Overlay</button>
+            <button class="tab-btn" id="tab-orig" onclick="switchView('original')">Raw Capture</button>
+          </div>
+        </div>
+
+        <div class="viewer-body">
+          <img id="viewer-img" class="viewer-img" style="display:none;" alt="Inspection Frame">
+          <div class="viewer-empty" id="viewer-empty">
+            <div style="font-size:36px; margin-bottom:10px;">🧅</div>
+            <div>No image currently loaded</div>
+            <div style="font-size:12px; color:var(--text-dim); margin-top:4px;">Select a sample preset or drag an image into the upload box</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detailed Quality Audit Table -->
+      <div class="table-container">
+        <div class="table-header">
+          <div style="font-weight:700; font-size:13px; text-transform:uppercase; letter-spacing:0.04em;">
+            Per-Onion Quality & Sizing Ledger
+          </div>
+          <div style="font-size:11px; color:var(--text-dim);" id="table-subtitle">0 items logged</div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>AI Visual Class</th>
+              <th>Calibrated Diameter</th>
+              <th>Confidence</th>
+              <th>Final Grade</th>
+              <th>Policy Reason Codes</th>
+            </tr>
+          </thead>
+          <tbody id="table-body">
+            <tr>
+              <td colspan="6" style="text-align:center; color:var(--text-dim); padding:28px;">
+                No detection data available. Execute a grading run to view individual onion metrics.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Policy Rules Modal -->
+  <div class="modal-backdrop" id="policy-modal">
+    <div class="modal">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <h3 style="font-weight:800; font-size:16px;">⚙ Mandi Grading Policy Settings</h3>
+        <button class="btn-secondary" style="padding:4px 8px;" onclick="closePolicyModal()">✕</button>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Grade A Diameter Bounds (mm)</label>
+        <div class="row-2">
+          <input type="number" id="pol-a-min" class="form-input" placeholder="Min (e.g. 45)">
+          <input type="number" id="pol-a-max" class="form-input" placeholder="Max (e.g. 65)">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Grade URS Diameter Bounds (mm)</label>
+        <div class="row-2">
+          <input type="number" id="pol-urs-min" class="form-input" placeholder="Min (e.g. 35)">
+          <input type="number" id="pol-urs-max" class="form-input" placeholder="Max (e.g. 70)">
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-top:16px;">
+        <label style="display:flex; align-items:center; gap:8px; font-size:13px; cursor:pointer;">
+          <input type="checkbox" id="pol-strict-cal">
+          <span>Strict Calibration Required (route uncalibrated frames to Manual Review)</span>
+        </label>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:24px;">
+        <button class="btn-secondary" onclick="closePolicyModal()">Cancel</button>
+        <button class="btn-primary" style="width:auto; margin-top:0;" onclick="savePolicySettings()">Save Policy</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentImageFile = null;
+    let currentImageBase64 = null;
+    let currentAnnotatedBase64 = null;
+    let currentRawBase64 = null;
+    let currentResults = null;
+    let activeView = 'annotated';
+    let webcamStream = null;
+
+    // Load Telemetry & Policy on Init
+    window.addEventListener('DOMContentLoaded', () => {
+      fetch('/health')
+        .then(r => r.json())
+        .then(data => {
+          document.getElementById('tele-device').innerText = data.device;
+          document.getElementById('tele-model').innerText = data.model;
+        })
+        .catch(() => {});
+      
+      setupDragDrop();
+    });
+
+    function setupDragDrop() {
+      const dropzone = document.getElementById('dropzone');
+      ['dragenter', 'dragover'].forEach(e => {
+        dropzone.addEventListener(e, (evt) => { evt.preventDefault(); dropzone.classList.add('dragover'); });
+      });
+      ['dragleave', 'drop'].forEach(e => {
+        dropzone.addEventListener(e, (evt) => { evt.preventDefault(); dropzone.classList.remove('dragover'); });
+      });
+      dropzone.addEventListener('drop', (evt) => {
+        const files = evt.dataTransfer.files;
+        if (files.length > 0) loadLocalFile(files[0]);
+      });
+    }
+
+    function handleFileSelect(e) {
+      if (e.target.files.length > 0) loadLocalFile(e.target.files[0]);
+    }
+
+    function loadLocalFile(file) {
+      currentImageFile = file;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        currentRawBase64 = e.target.result;
+        currentImageBase64 = currentRawBase64;
+        currentAnnotatedBase64 = null;
+        displayViewerImage(currentRawBase64);
+        document.getElementById('grade-btn').disabled = false;
+        document.getElementById('banner-title').innerText = "Image Loaded: " + file.name;
+        document.getElementById('banner-subtitle').innerText = "Click 'Execute Grade & Audit' to process with YOLOv8s-seg.";
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // 1-Click Sample Preset Loader
+    async function loadSample(sampleId) {
+      try {
+        const resp = await fetch('/sample-images');
+        const list = await resp.json();
+        const item = list.find(s => s.id === sampleId);
+        if (!item) return;
+
+        // Fetch image as blob
+        const imgResp = await fetch(item.url);
+        const blob = await imgResp.blob();
+        currentImageFile = new File([blob], item.filename, { type: 'image/jpeg' });
+        
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          currentRawBase64 = e.target.result;
+          currentImageBase64 = currentRawBase64;
+          currentAnnotatedBase64 = null;
+          displayViewerImage(currentRawBase64);
+          document.getElementById('grade-btn').disabled = false;
+          executeGrading();
+        };
+        reader.readAsDataURL(blob);
+
+      } catch (err) {
+        alert("Failed to load sample: " + err);
+      }
+    }
+
+    // Execute Grading Pipeline
+    async function executeGrading() {
+      if (!currentImageFile && !currentImageBase64) return;
+
+      const gradeBtn = document.getElementById('grade-btn');
+      gradeBtn.disabled = true;
+      document.getElementById('btn-text').innerHTML = '<span class="spinner"></span> Processing AI Pipeline...';
+
+      const formData = new FormData();
+      if (currentImageFile) {
+        formData.append('file', currentImageFile);
+      } else {
+        formData.append('image', currentImageBase64);
+      }
+
+      formData.append('batch_id', document.getElementById('batch_id').value);
+      formData.append('farmer_id', document.getElementById('farmer_id').value);
+      formData.append('centre', document.getElementById('centre').value);
+      formData.append('conf_threshold', (parseInt(document.getElementById('conf-slider').value) / 100).toFixed(2));
+
+      try {
+        const response = await fetch('/predict', {
+          method: 'POST',
+          body: formData,
+        });
+        const data = await response.json();
+
+        if (data.status === 'success' || data.status === 'no_onions_detected') {
+          currentResults = data;
+          currentAnnotatedBase64 = data.annotated_image;
+          displayViewerImage(currentAnnotatedBase64);
+          updateDashboard(data);
+        } else {
+          alert("Pipeline error: " + (data.error || data.status));
+        }
+
+      } catch (err) {
+        alert("Failed to connect to backend API: " + err);
+      } finally {
+        gradeBtn.disabled = false;
+        document.getElementById('btn-text').innerText = 'Execute Grade & Audit';
+      }
+    }
+
+    function updateDashboard(data) {
+      const summary = data.summary;
+      const cal = data.calibration;
+      const preds = data.predictions || [];
+
+      // Status Banner
+      const titleElem = document.getElementById('banner-title');
+      const subElem = document.getElementById('banner-subtitle');
+      const iconElem = document.getElementById('banner-icon');
+
+      if (!data.is_onion_frame || summary.total === 0) {
+        titleElem.innerText = "No Onions Detected";
+        const curConf = parseInt(document.getElementById('conf-slider').value);
+        if (curConf > 50) {
+          subElem.innerHTML = `Zero items passed the <strong>${curConf}%</strong> confidence gate. <span style="color:var(--cyan); font-weight:600;">Lower the slider to 35%–50%</span> to detect rotten or low-contrast items.`;
+        } else {
+          subElem.innerText = "The frame was verified by YOLOv8 and contains zero recognized onions.";
+        }
+        iconElem.innerText = "ℹ";
+        iconElem.style.color = "var(--text-dim)";
+      } else {
+        titleElem.innerText = summary.overall_status.replace(/_/g, " ");
+        subElem.innerText = `Decision: ${summary.acceptance_status} • ${summary.total} verified instances in batch`;
+        iconElem.innerText = summary.acceptance_status.includes('REJECT') ? "✕" : "✓";
+        iconElem.style.color = summary.acceptance_status.includes('REJECT') ? "var(--grade-rej)" : "var(--grade-a)";
+      }
+
+      // Calibration telemetry
+      if (cal.calibrated) {
+        document.getElementById('banner-cal').innerHTML = `<span style="color:var(--cyan);">✓ ARUCO 25mm (${cal.pixels_per_mm.toFixed(2)} px/mm)</span>`;
+      } else {
+        document.getElementById('banner-cal').innerHTML = `<span style="color:var(--text-muted);">⚠ UNCALIBRATED (ESTIMATED)</span>`;
+      }
+
+      // KPI Numbers
+      document.getElementById('kpi-total').innerText = summary.total;
+      document.getElementById('kpi-a').innerText = summary.grade_a_pct + "%";
+      document.getElementById('kpi-a-cnt').innerText = summary.counts.GRADE_A + " onions";
+      document.getElementById('kpi-urs').innerText = summary.grade_urs_pct + "%";
+      document.getElementById('kpi-urs-cnt').innerText = summary.counts.GRADE_URS + " onions";
+      document.getElementById('kpi-rej').innerText = summary.rejected_pct + "%";
+      document.getElementById('kpi-rej-cnt').innerText = summary.counts.REJECTED + " onions";
+      document.getElementById('kpi-diam').innerText = summary.avg_diameter_mm.toFixed(1);
+
+      // Audit Reports Card
+      if (data.report_id) {
+        document.getElementById('export-card').style.display = 'block';
+        document.getElementById('btn-view-html').href = `/reports/${data.report_id}/html`;
+        document.getElementById('btn-download-pdf').href = `/reports/${data.report_id}/pdf`;
+      }
+
+      // Table rows
+      const tbody = document.getElementById('table-body');
+      tbody.innerHTML = '';
+
+      if (preds.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-dim); padding:28px;">No valid onion items detected in frame.</td></tr>`;
+      } else {
+        preds.forEach(p => {
+          const row = document.createElement('tr');
+          const reasonsHtml = (p.reason_codes || []).map(r => `<span class="reason-tag">${r}</span>`).join(' ');
+          row.innerHTML = `
+            <td><strong>#${p.onion_id.slice(-2)}</strong></td>
+            <td><span style="font-family:'JetBrains Mono'; text-transform:uppercase;">${p.visual_class}</span></td>
+            <td><strong>${p.diameter_mm.toFixed(1)} mm</strong> ${p.is_calibrated ? '<span class="cal-indicator">● Cal</span>' : '<span style="color:var(--text-dim);font-size:10px;">(Est)</span>'}</td>
+            <td>
+              <div style="font-family:'JetBrains Mono'; font-weight:700;">${(p.confidence * 100).toFixed(1)}%</div>
+            </td>
+            <td><span class="grade-badge ${p.final_grade}">${p.final_grade.replace('_', ' ')}</span></td>
+            <td>${reasonsHtml || '—'}</td>
+          `;
+          tbody.appendChild(row);
+        });
+      }
+      document.getElementById('table-subtitle').innerText = `${preds.length} verified items recorded`;
+    }
+
+    function displayViewerImage(b64) {
+      const img = document.getElementById('viewer-img');
+      const empty = document.getElementById('viewer-empty');
+      if (b64) {
+        img.src = b64;
+        img.style.display = 'block';
+        empty.style.display = 'none';
+      } else {
+        img.style.display = 'none';
+        empty.style.display = 'block';
+      }
+    }
+
+    function switchView(mode) {
+      activeView = mode;
+      document.getElementById('tab-annot').classList.toggle('active', mode === 'annotated');
+      document.getElementById('tab-orig').classList.toggle('active', mode === 'original');
+
+      if (mode === 'annotated' && currentAnnotatedBase64) {
+        displayViewerImage(currentAnnotatedBase64);
+      } else if (currentRawBase64) {
+        displayViewerImage(currentRawBase64);
+      }
+    }
+
+    // Live Webcam
+    async function toggleWebcam() {
+      const box = document.getElementById('webcam-box');
+      if (box.style.display === 'none') {
+        try {
+          webcamStream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 } });
+          document.getElementById('webcam').srcObject = webcamStream;
+          box.style.display = 'block';
+        } catch (err) {
+          alert("Webcam access denied or unavailable: " + err);
+        }
+      } else {
+        if (webcamStream) webcamStream.getTracks().forEach(t => t.stop());
+        box.style.display = 'none';
+      }
+    }
+
+    function captureWebcam() {
+      const video = document.getElementById('webcam');
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth || 640;
+      canvas.height = video.videoHeight || 480;
+      canvas.getContext('2d').drawImage(video, 0, 0);
+      currentRawBase64 = canvas.toDataURL('image/jpeg');
+      currentImageBase64 = currentRawBase64;
+      currentImageFile = null;
+      displayViewerImage(currentRawBase64);
+      toggleWebcam();
+      document.getElementById('grade-btn').disabled = false;
+      executeGrading();
+    }
+
+    // Policy Modal Controls
+    async function openPolicyModal() {
+      try {
+        const resp = await fetch('/policy');
+        const p = await resp.json();
+        document.getElementById('pol-a-min').value = p.grade_a.diameter_min_mm;
+        document.getElementById('pol-a-max').value = p.grade_a.diameter_max_mm;
+        document.getElementById('pol-urs-min').value = p.grade_urs.diameter_min_mm;
+        document.getElementById('pol-urs-max').value = p.grade_urs.diameter_max_mm;
+        document.getElementById('pol-strict-cal').checked = !!p.strict_calibration_required;
+        document.getElementById('policy-modal').style.display = 'flex';
+      } catch (err) {
+        alert("Failed to fetch policy: " + err);
+      }
+    }
+
+    function closePolicyModal() {
+      document.getElementById('policy-modal').style.display = 'none';
+    }
+
+    async function savePolicySettings() {
+      const payload = {
+        policy_id: "custom_mandi_v1",
+        version: "1.1.0",
+        effective_date: new Date().toISOString().split('T')[0],
+        urs_enabled: true,
+        strict_calibration_required: document.getElementById('pol-strict-cal').checked,
+        min_confidence_threshold: 0.35,
+        grade_a: {
+          diameter_min_mm: parseFloat(document.getElementById('pol-a-min').value) || 45.0,
+          diameter_max_mm: parseFloat(document.getElementById('pol-a-max').value) || 65.0,
+          max_defects: { damaged: false, rotten: false, sprouted: false }
+        },
+        grade_urs: {
+          diameter_min_mm: parseFloat(document.getElementById('pol-urs-min').value) || 35.0,
+          diameter_max_mm: parseFloat(document.getElementById('pol-urs-max').value) || 70.0,
+          max_defects: { damaged: true, rotten: false, sprouted: true }
+        }
+      };
+
+      try {
+        const resp = await fetch('/policy', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const res = await resp.json();
+        if (res.status === 'success') {
+          closePolicyModal();
+          alert("Policy settings updated successfully!");
+          if (currentImageBase64) executeGrading();
+        }
+      } catch (err) {
+        alert("Failed to save policy: " + err);
+      }
+    }
+  </script>
+</body>
+</html>

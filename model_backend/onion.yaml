@@ -1,0 +1,4 @@
+# Onion grading dataset (YOLOv8 segmentation format)
+# For inference only - the model predicts 3 classes
+nc: 3
+names: ['grade_a', 'grade_urs', 'reject']
