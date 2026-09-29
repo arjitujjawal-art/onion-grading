@@ -98,18 +98,28 @@ def predict():
     """
     img_bgr = None
 
-    # Handle multipart upload
-    if "file" in request.files:
-        file = request.files["file"]
-        if file.filename != "":
-            img_bytes = file.read()
-            nparr = np.frombuffer(img_bytes, np.uint8)
-            img_bgr = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    # 1. Handle multipart file upload ('file' or 'image' field)
+    for field_name in ("file", "image"):
+        if field_name in request.files:
+            file = request.files[field_name]
+            if file.filename != "":
+                img_bytes = file.read()
+                nparr = np.frombuffer(img_bytes, np.uint8)
+                img_bgr = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+                if img_bgr is not None:
+                    break
 
-    # Handle base64 JSON payload
-    if img_bgr is None and request.is_json:
-        data = request.get_json(silent=True) or {}
-        b64_str = data.get("image", "")
+    # 2. Handle base64 from multipart form-data, urlencoded form, or JSON payload
+    if img_bgr is None:
+        b64_str = None
+        if request.form:
+            b64_str = request.form.get("image") or request.form.get("file")
+        if not b64_str and request.is_json:
+            data = request.get_json(silent=True) or {}
+            b64_str = data.get("image") or data.get("file")
+        if not b64_str and request.values:
+            b64_str = request.values.get("image") or request.values.get("file")
+
         if b64_str:
             if "," in b64_str:
                 b64_str = b64_str.split(",", 1)[1]

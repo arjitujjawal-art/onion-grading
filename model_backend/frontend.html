@@ -1075,16 +1075,27 @@
     function captureWebcam() {
       const video = document.getElementById('webcam');
       const canvas = document.createElement('canvas');
-      canvas.width = video.videoWidth || 640;
-      canvas.height = video.videoHeight || 480;
-      canvas.getContext('2d').drawImage(video, 0, 0);
-      currentRawBase64 = canvas.toDataURL('image/jpeg');
+      const w = video.videoWidth || 640;
+      const h = video.videoHeight || 480;
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, w, h);
+
+      currentRawBase64 = canvas.toDataURL('image/jpeg', 0.95);
       currentImageBase64 = currentRawBase64;
-      currentImageFile = null;
       displayViewerImage(currentRawBase64);
-      toggleWebcam();
-      document.getElementById('grade-btn').disabled = false;
-      executeGrading();
+      document.getElementById('banner-title').innerText = "Live Webcam Frame Captured";
+      document.getElementById('banner-subtitle').innerText = "Running AI analysis with YOLOv8s-seg...";
+
+      canvas.toBlob((blob) => {
+        if (blob) {
+          currentImageFile = new File([blob], 'webcam_capture.jpg', { type: 'image/jpeg' });
+        }
+        toggleWebcam();
+        document.getElementById('grade-btn').disabled = false;
+        executeGrading();
+      }, 'image/jpeg', 0.95);
     }
 
     // Policy Modal Controls
