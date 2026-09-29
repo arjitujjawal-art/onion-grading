@@ -266,5 +266,12 @@ def get_report_asset(filename):
 
 
 if __name__ == "__main__":
-    print(f"Starting Onion Grading Backend on port 5000 (Device: {DEVICE_NAME})...")
-    app.run(host="0.0.0.0", port=5000, debug=False)
+    import argparse
+    parser = argparse.ArgumentParser(description="Onion Quality Grading & Traceability Backend API")
+    parser.add_argument("--port", type=int, default=int(os.environ.get("PORT", 5001)), help="Port to run the server on (default: 5001)")
+    parser.add_argument("--host", type=str, default="0.0.0.0", help="Host to bind to (default: 0.0.0.0)")
+    args = parser.parse_args()
+
+    print(f"Starting Onion Grading Backend on http://{args.host}:{args.port} (Device: {DEVICE_NAME})...")
+    app.run(host=args.host, port=args.port, debug=False)
+
